@@ -14,10 +14,14 @@ class Config(BaseConfig):
     postgres_db: str
     postgres_port: int
     postgres_host: str
-    secret_key: str
     environment: str = "development"
     app_host: str = "localhost"
     app_port: int = 8000
+    jwt_secret_key: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
+    google_client_id: str
+    google_client_secret: str
 
 
 config: Config = Config()  # type: ignore
