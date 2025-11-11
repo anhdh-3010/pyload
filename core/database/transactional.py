@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import wraps
 
-from app.core.database import async_session
+from core.database import async_session
 
 
 class Propagation(Enum):

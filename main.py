@@ -4,11 +4,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
-from app.api import router
-from app.core.config import config
-from app.core.exceptions.base import CustomException
-from app.core.middlewares import (
+
+# Import routers from app modules
+from app.users.routers import router as users_router
+
+# Core imports
+from core import config, CustomException
+from core.middlewares import (
     ResponseLoggerMiddleware,
     SQLAlchemyMiddleware,
 )
@@ -24,11 +28,20 @@ def init_listeners(app_: FastAPI) -> None:
 
 
 def init_routers(app_: FastAPI) -> None:
-    app_.include_router(router)
+    app_.include_router(users_router, prefix="/api/v1", tags=["users"])
 
 
 def make_middleware() -> List[Middleware]:
     middleware = [
+        Middleware(
+            SessionMiddleware,
+            secret_key=config.session_secret_key or config.jwt_secret_key,
+            session_cookie="oauth_session",
+            max_age=1800,  # 30 minutes
+            same_site="lax",
+            https_only=False,  # Set to True in production with HTTPS
+            path="/",
+        ),
         Middleware(
             CORSMiddleware,
             allow_origins=["*"],

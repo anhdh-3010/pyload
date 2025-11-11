@@ -5,16 +5,16 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy import Connection, pool
 
 from alembic import context
-from app.core.config import config as app_config
-from app.core.database.session import Base
-from app.core.models import *  # noqa: F403
+from core import config as app_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 # URL-encode the password to handle special characters
 encoded_password = quote_plus(app_config.postgres_password)
-POSTGRES_URL: str = f"postgresql+asyncpg://{app_config.postgres_user}:{encoded_password}@{app_config.postgres_host}:{app_config.postgres_port}/{app_config.postgres_db}"
+POSTGRES_URL: str = (
+    f"postgresql+asyncpg://{app_config.postgres_user}:{encoded_password}@{app_config.postgres_host}:{app_config.postgres_port}/{app_config.postgres_db}"
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

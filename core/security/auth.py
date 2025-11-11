@@ -1,10 +1,13 @@
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
-from fastapi import Header
+from fastapi import Header, Depends
 from jose import ExpiredSignatureError, JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import config
-from app.core.exceptions import CustomException
+from core.config import config
+from core.exceptions import CustomException
+from core.database.session import get_async_session
 
 
 class JWTDecodeError(CustomException):
@@ -15,6 +18,11 @@ class JWTDecodeError(CustomException):
 class JWTExpiredError(CustomException):
     code = 401
     message = "Token expired"
+
+
+class UserNotFoundError(CustomException):
+    code = 401
+    message = "User not found"
 
 
 class JWTHandler:
@@ -55,8 +63,15 @@ class JWTHandler:
 
     @staticmethod
     async def get_current_user(
-        authorization: str = Header(None, alias="Authorization")
-    ) -> dict:
+        authorization: str = Header(None, alias="Authorization"),
+        db_session: AsyncSession = Depends(get_async_session),
+    ):
+        """
+        Get current authenticated user from JWT token.
+        Returns User object from database.
+        """
+        from app.users.data_access.user_repository import UserRepository
+
         if not authorization:
             raise JWTDecodeError()
 
@@ -67,4 +82,20 @@ class JWTHandler:
 
         token = parts[1]
         payload = JWTHandler.decode(token)
-        return payload
+
+        # Get user_id from payload
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise JWTDecodeError()
+
+        # Fetch user from database
+        user_repo = UserRepository(db_session)
+        try:
+            user = await user_repo.get_by_id(UUID(user_id))
+        except ValueError:
+            raise JWTDecodeError()
+
+        if not user:
+            raise UserNotFoundError()
+
+        return user

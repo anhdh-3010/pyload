@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.dialects.postgresql import JSONB
 
-from app.core.config import config
+from core.config import config
 
 session_context: ContextVar[str] = ContextVar("session_context")
 
@@ -31,7 +31,9 @@ def reset_session_context(context: Token) -> None:
 
 # URL-encode the password to handle special characters
 encoded_password = quote_plus(config.postgres_password)
-POSTGRES_URL: str = f"postgresql+asyncpg://{config.postgres_user}:{encoded_password}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
+POSTGRES_URL: str = (
+    f"postgresql+asyncpg://{config.postgres_user}:{encoded_password}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
+)
 
 # Create async engine for SQLAlchemy 2.0
 engine: AsyncEngine = create_async_engine(

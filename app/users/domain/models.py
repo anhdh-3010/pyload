@@ -2,9 +2,9 @@ from typing import Optional
 import uuid
 
 from sqlalchemy import TEXT, UUID, Boolean, Integer, String
-from app.core.database.timestamp import TimestampMixin
-from app.core.database.session import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from core.database.timestamp import TimestampMixin
+from core import Base
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class User(Base, TimestampMixin):
