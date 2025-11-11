@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Request, Depends
-
-# Core imports - much shorter now!
 from core import (
     JWTHandler,
     oauth,
@@ -9,8 +7,6 @@ from core import (
     UnauthorizedException,
     BadRequestException,
 )
-
-# Domain imports - also shorter!
 from app.users.domain import (
     User,
     Token,

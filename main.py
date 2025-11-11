@@ -7,15 +7,14 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 
-# Import routers from app modules
-from app.users.routers import router as users_router
-
-# Core imports
 from core import config, CustomException
 from core.middlewares import (
     ResponseLoggerMiddleware,
     SQLAlchemyMiddleware,
 )
+
+from app.users.routers import router as users_router
+from app.users.routers import private_router as private_users_router
 
 
 def init_listeners(app_: FastAPI) -> None:
@@ -28,7 +27,8 @@ def init_listeners(app_: FastAPI) -> None:
 
 
 def init_routers(app_: FastAPI) -> None:
-    app_.include_router(users_router, prefix="/api/v1", tags=["users"])
+    app_.include_router(users_router, prefix="/api/v1", tags=["auth"])
+    app_.include_router(private_users_router, prefix="/api/v1", tags=["users"])
 
 
 def make_middleware() -> List[Middleware]:
@@ -49,11 +49,6 @@ def make_middleware() -> List[Middleware]:
             allow_methods=["*"],
             allow_headers=["*"],
         ),
-        # Middleware(
-        #     AuthenticationMiddleware,
-        #     backend=AuthBackend(),
-        #     on_error=on_auth_error,
-        # ),
         Middleware(SQLAlchemyMiddleware),
         Middleware(ResponseLoggerMiddleware),
     ]

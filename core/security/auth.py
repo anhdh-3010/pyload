@@ -40,6 +40,7 @@ class JWTHandler:
 
     @staticmethod
     def decode(token: str) -> dict:
+        a = 1
         try:
             return jwt.decode(
                 token, JWTHandler.secret_key, algorithms=[JWTHandler.algorithm]
