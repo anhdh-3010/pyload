@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
+from fastapi import Header
 from jose import ExpiredSignatureError, JWTError, jwt
 
 from app.core.config import config
@@ -23,7 +24,7 @@ class JWTHandler:
 
     @staticmethod
     def encode(payload: dict, auth_method="password") -> str:
-        expire = datetime.utcnow() + timedelta(minutes=JWTHandler.expire_minutes)
+        expire = datetime.now(UTC) + timedelta(minutes=JWTHandler.expire_minutes)
         payload.update({"exp": expire, "auth_method": auth_method})
         return jwt.encode(
             payload, JWTHandler.secret_key, algorithm=JWTHandler.algorithm
@@ -51,3 +52,19 @@ class JWTHandler:
             )
         except JWTError as exception:
             raise JWTDecodeError() from exception
+
+    @staticmethod
+    async def get_current_user(
+        authorization: str = Header(None, alias="Authorization")
+    ) -> dict:
+        if not authorization:
+            raise JWTDecodeError()
+
+        # Extract token from "Bearer <token>" format
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise JWTDecodeError()
+
+        token = parts[1]
+        payload = JWTHandler.decode(token)
+        return payload

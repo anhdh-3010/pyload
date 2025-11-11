@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from core.database.session import (
+from app.core.database.session import (
     reset_session_context,
     async_session,
     set_session_context,

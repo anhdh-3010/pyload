@@ -3,11 +3,11 @@ from typing import Any, Generic, List, Optional, Type, TypeVar, Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database.session import Base
-from core.exceptions.base import NotFoundException
+from app.core.database.session import Base
+from app.core.exceptions.base import NotFoundException
 
 
-from .abs import AbsRepository
+from app.core.repository.abs import AbsRepository
 
 
 ModelType = TypeVar("ModelType", bound=Base)

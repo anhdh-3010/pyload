@@ -15,6 +15,5 @@ oauth.register(
     client_secret_key=config.google_client_secret,
 )
 
-# --- Cấu hình JWT (python-jose) ---
 # Dependency để lấy token từ header "Authorization: Bearer <token>"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/callback")

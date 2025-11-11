@@ -5,10 +5,10 @@ from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
-from api import router
-from core.config import config
-from core.exceptions.base import CustomException
-from core.middlewares import (
+from app.api import router
+from app.core.config import config
+from app.core.exceptions.base import CustomException
+from app.core.middlewares import (
     ResponseLoggerMiddleware,
     SQLAlchemyMiddleware,
 )

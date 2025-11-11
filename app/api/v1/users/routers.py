@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 
+from app.core.exceptions import UnauthorizedException, BadRequestException
 from app.api.v1.users.domain.schemas import Token
-from app.core.exceptions import BadRequestException, UnauthorizedException
 from app.core.security.auth import JWTHandler
 from app.core.security.google_auth import oauth
 
 router = APIRouter()
+private_router = APIRouter(dependencies=[Depends(JWTHandler.get_current_user)])
 
 
 @router.get("/auth/google")
 async def auth_google(request: Request):
     return await oauth.google.authorize_redirect(
-        request, redirect_uri="http://localhost:8000/auth/google/callback"
+        request, redirect_uri="http://localhost:8000/api/v1/auth/google/callback"
     )
 
 
@@ -31,10 +32,10 @@ async def auth_google_callback(request: Request) -> Token:
     except Exception:
         raise BadRequestException("Could not validate credentials")
 
-
-async def refresh_token_access(access_token: str, refresh_token: str) -> Token:
-    token = JWTHandler.decode(access_token)
-    refresh_token = JWTHandler.decode(refresh_token)
+@private_router.post("/auth/refresh", response_model=Token)
+async def refresh_token_access(payload: Token) -> Token:
+    token = JWTHandler.decode(payload.access_token)
+    refresh_token = JWTHandler.decode(payload.refresh_token)
 
     if refresh_token.get("sub") != "refresh_token":
         raise UnauthorizedException("Invalid refresh token")
