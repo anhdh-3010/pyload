@@ -1,14 +1,11 @@
-from typing import Any, Generic, List, Optional, Type, TypeVar, Sequence
+from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database.session import Base
 from core.exceptions.base import NotFoundException
-
-
 from core.repository.abs import AbsRepository
-
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -41,7 +38,7 @@ class BaseRepository(AbsRepository, Generic[ModelType]):
         entity = await self.get_by_id(entity_id)
         if not entity:
             raise NotFoundException(
-                f"{self.model_class.__tablename__.title()} with id: {id} does not exist"
+                f"{self.model_class.__tablename__.title()} with id: {entity_id} does not exist"
             )
 
         await self.session.delete(entity)
@@ -51,9 +48,9 @@ class BaseRepository(AbsRepository, Generic[ModelType]):
     async def update(self, entity_id: Any, entity: dict[str, Any]) -> ModelType | None:
         """Update an entity by its ID."""
         db_entity = await self.get_by_id(entity_id)
-        if not entity:
+        if not db_entity:
             raise NotFoundException(
-                f"{self.model_class.__tablename__.title()} with id: {id} does not exist"
+                f"{self.model_class.__tablename__.title()} with id: {entity_id} does not exist"
             )
 
         for key, value in entity.items():

@@ -1,14 +1,16 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+from core import JWTHandler, Transactional
+
 from ..data_access.user_repository import UserRepository
 from .models import User
-
-from core import JWTHandler
 
 
 class UserService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
+    @Transactional
     async def handle_google_login(
         self, user_info: Dict[str, Any]
     ) -> tuple[User, str, str]:
@@ -28,7 +30,7 @@ class UserService:
         avatar = user_info.get("picture")
 
         # Create or update user in database
-        user = await self.user_repository.create_or_update_from_google(
+        user = await self.create_or_update_from_google(
             email=email, full_name=full_name, avatar=avatar
         )
 
@@ -58,3 +60,28 @@ class UserService:
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         """Get user by ID"""
         return await self.user_repository.get_by_id(user_id)
+
+    async def create_or_update_from_google(
+        self, email: str, full_name: Optional[str] = None, avatar: Optional[str] = None
+    ) -> User:
+        """Create new user or update existing user from Google OAuth data"""
+        user = await self.user_repository.get_by_email(email)
+
+        if user:
+            # Update existing user
+            update_data = {}
+            if full_name:
+                update_data["full_name"] = full_name
+            if avatar:
+                update_data["avatar"] = avatar
+            if update_data:
+                await self.user_repository.update(user.id, update_data)
+            return user
+        else:
+            # Create new user
+            user_data = {
+                "email": email,
+                "full_name": full_name,
+                "avatar": avatar,
+            }
+            return await self.user_repository.create(user_data)

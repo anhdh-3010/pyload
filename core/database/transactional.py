@@ -16,40 +16,30 @@ class Transactional:
     def __call__(self, function):
         @wraps(function)
         async def decorator(*args, **kwargs):
-            try:
-                if self.propagation == Propagation.REQUIRED:
-                    result = await self._run_required(
-                        function=function,
-                        args=args,
-                        kwargs=kwargs,
-                    )
-                elif self.propagation == Propagation.REQUIRED_NEW:
-                    result = await self._run_required_new(
-                        function=function,
-                        args=args,
-                        kwargs=kwargs,
-                    )
-                else:
-                    result = await self._run_required(
-                        function=function,
-                        args=args,
-                        kwargs=kwargs,
-                    )
-            except Exception as exception:
-                await async_session.rollback()
-                raise exception
-
-            return result
+            if self.propagation == Propagation.REQUIRED:
+                return await self._run_required(function, args, kwargs)
+            elif self.propagation == Propagation.REQUIRED_NEW:
+                return await self._run_required_new(function, args, kwargs)
+            else:
+                return await self._run_required(function, args, kwargs)
 
         return decorator
 
-    async def _run_required(self, function, args, kwargs) -> None:
-        result = await function(*args, **kwargs)
-        await async_session.commit()
-        return result
+    async def _run_required(self, function, args, kwargs):
+        try:
+            result = await function(*args, **kwargs)
+            await async_session.commit()
+            return result
+        except Exception as e:
+            await async_session.rollback()
+            raise e
 
-    async def _run_required_new(self, function, args, kwargs) -> None:
-        async_session.begin()
-        result = await function(*args, **kwargs)
-        await async_session.commit()
-        return result
+    async def _run_required_new(self, function, args, kwargs):
+        try:
+            async_session.begin()
+            result = await function(*args, **kwargs)
+            await async_session.commit()
+            return result
+        except Exception as e:
+            await async_session.rollback()
+            raise e

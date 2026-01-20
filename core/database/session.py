@@ -1,16 +1,17 @@
+import uuid
 from contextvars import ContextVar, Token
 from typing import Any
 from urllib.parse import quote_plus
 
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
+    AsyncEngine,
     AsyncSession,
     async_scoped_session,
     async_sessionmaker,
-    AsyncEngine,
+    create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from core.config import config
 
@@ -31,9 +32,7 @@ def reset_session_context(context: Token) -> None:
 
 # URL-encode the password to handle special characters
 encoded_password = quote_plus(config.postgres_password)
-POSTGRES_URL: str = (
-    f"postgresql+asyncpg://{config.postgres_user}:{encoded_password}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
-)
+POSTGRES_URL: str = f"postgresql+asyncpg://{config.postgres_user}:{encoded_password}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
 
 # Create async engine for SQLAlchemy 2.0
 engine: AsyncEngine = create_async_engine(
@@ -78,3 +77,8 @@ class Base(DeclarativeBase):
         dict[str, Any]: JSONB,
         list[dict[str, Any]]: JSONB,
     }
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),  # type: ignore
+        primary_key=True,
+        default=uuid.uuid4,
+    )

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 
 def utcnow() -> datetime:
@@ -6,4 +6,4 @@ def utcnow() -> datetime:
     Returns the current time in UTC but with tzinfo set, as opposed
     to datetime.utcnow which does not.
     """
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.now(timezone.utc)
