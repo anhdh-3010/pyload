@@ -3,10 +3,10 @@ from uuid import UUID
 
 from fastapi import Depends, Header, status
 from jose import ExpiredSignatureError, JWTError, jwt
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.accounts.domain.models import Accounts
+from core import UnitOfWork, get_unit_of_work
 from core.config import config
-from core.database.session import get_async_session
 from core.exceptions import CustomException
 
 
@@ -60,14 +60,12 @@ class JWTHandler:
     @staticmethod
     async def get_current_user(
         authorization: str = Header(None, alias="Authorization"),
-        db_session: AsyncSession = Depends(get_async_session),
+        uow: UnitOfWork = Depends(dependency=get_unit_of_work),
     ):
         """
         Get current authenticated user from JWT token.
         Returns User object from database.
         """
-        from app.users.data_access.user_repository import UserRepository
-
         if not authorization:
             raise JWTDecodeError()
 
@@ -85,9 +83,9 @@ class JWTHandler:
             raise JWTDecodeError()
 
         # Fetch user from database
-        user_repo = UserRepository(db_session)
+        account_repo = uow.get_repository(Accounts)
         try:
-            user = await user_repo.get_by_id(UUID(user_id))
+            user = await account_repo.get_by_id(UUID(user_id))
         except ValueError as err:
             raise JWTDecodeError() from err
 

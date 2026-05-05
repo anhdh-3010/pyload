@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.users.routers import private_router as private_users_router
-from app.users.routers import router as users_router
+from app.accounts.routers import private_router as private_accounts_router
+from app.accounts.routers import router as accounts_router
 from core import CustomException, config
 from core.middlewares import (
     ResponseLoggerMiddleware,
@@ -25,8 +25,8 @@ def init_listeners(app_: FastAPI) -> None:
 
 
 def init_routers(app_: FastAPI) -> None:
-    app_.include_router(users_router, prefix="/api/v1", tags=["auth"])
-    app_.include_router(private_users_router, prefix="/api/v1", tags=["users"])
+    app_.include_router(accounts_router, prefix="/api/v1", tags=["auth"])
+    app_.include_router(private_accounts_router, prefix="/api/v1", tags=["accounts"])
 
 
 def make_middleware() -> list[Middleware]:
