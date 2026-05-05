@@ -1,7 +1,7 @@
-from typing import Optional
-from datetime import datetime
-from pydantic import BaseModel
 import uuid
+from datetime import datetime
+
+from pydantic import BaseModel
 
 
 class Token(BaseModel):
@@ -12,11 +12,11 @@ class Token(BaseModel):
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
-    full_name: Optional[str] = None
-    avatar: Optional[str] = None
+    full_name: str | None = None
+    avatar: str | None = None
     is_admin: bool = False
-    current_cefr_level: Optional[str] = None
-    learning_goal: Optional[str] = None
+    current_cefr_level: str | None = None
+    learning_goal: str | None = None
     time_per_day_minutes: int = 30
     created_at: datetime
     updated_at: datetime

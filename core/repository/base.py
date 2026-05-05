@@ -1,4 +1,5 @@
-from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
+from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,13 +8,11 @@ from core.database.session import Base
 from core.exceptions.base import NotFoundException
 from core.repository.abs import AbsRepository
 
-ModelType = TypeVar("ModelType", bound=Base)
 
-
-class BaseRepository(AbsRepository, Generic[ModelType]):
-    def __init__(self, model: Type[ModelType], db_session: AsyncSession) -> None:
+class BaseRepository[ModelType: Base](AbsRepository):
+    def __init__(self, model: type[ModelType], db_session: AsyncSession) -> None:
         self.session = db_session
-        self.model_class: Type[ModelType] = model
+        self.model_class: type[ModelType] = model
 
     async def create(self, entity: dict[str, Any]) -> ModelType:
         if entity is None:
@@ -62,11 +61,11 @@ class BaseRepository(AbsRepository, Generic[ModelType]):
 
     async def filter(
         self,
-        filter_conditions: Optional[List] = None,
-        joins: Optional[List] = None,
-        options: Optional[List] = None,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
+        filter_conditions: list | None = None,
+        joins: list | None = None,
+        options: list | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> Sequence[ModelType] | None:
         query = select(self.model_class)
 

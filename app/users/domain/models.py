@@ -1,18 +1,20 @@
-from typing import Optional
-
-from sqlalchemy import Boolean, String
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from uuid6 import uuid
 
 from core import Base
-from core.database.timestamp import TimestampMixin
 
 
-class User(Base, TimestampMixin):
-    __tablename__ = "users"
+class Accounts(Base):
+    __tablename__ = "accounts"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    full_name: Mapped[Optional[str]] = mapped_column(String(255))
-    avatar: Mapped[Optional[str]] = mapped_column(String(255))
-    is_admin: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false", nullable=False
+    account_name: Mapped[str] = mapped_column(String(256), nullable=False)
+
+
+class AccountPasswords(Base):
+    __tablename__ = "account_passwords"
+
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False
     )

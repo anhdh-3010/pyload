@@ -3,9 +3,9 @@ Security module exports
 """
 
 from core.security.auth import (
-    JWTHandler,
     JWTDecodeError,
     JWTExpiredError,
+    JWTHandler,
     UserNotFoundError,
 )
 from core.security.google_auth import oauth

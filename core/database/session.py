@@ -1,9 +1,9 @@
-import uuid
 from contextvars import ContextVar, Token
-from typing import Any
+from datetime import datetime
 from urllib.parse import quote_plus
 
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import DateTime, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -12,14 +12,15 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from uuid6 import uuid, uuid7
 
 from core.config import config
 
 session_context: ContextVar[str] = ContextVar("session_context")
 
 
-def get_session_context() -> str:
-    return session_context.get()
+def get_session_context() -> str | None:
+    return session_context.get(None)
 
 
 def set_session_context(session_id: str) -> Token:
@@ -48,7 +49,6 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False,
-    autocommit=False,
 )
 
 # Create scoped session
@@ -58,27 +58,46 @@ async_session: async_scoped_session[AsyncSession] = async_scoped_session(
 )
 
 
-async def get_async_session():
+async def get_unit_of_work():
     """
-    Get the database session.
-    This can be used for dependency injection.
+    Get a Unit of Work instance for repository management.
 
-    :return: The database session.
+    Works in conjunction with SQLAlchemyMiddleware which handles:
+    - Session creation per request
+    - Transaction boundaries (begin/commit/rollback)
+    - Session cleanup
+
+    UoW responsibility:
+    - Repository management
+    - Identity map consistency
+    - Change aggregation
+
+    :return: UnitOfWork instance
     """
+    from core.unit_of_work import UnitOfWork
+
+    session = async_session()
     try:
-        yield async_session
+        yield UnitOfWork(session)
     finally:
-        await async_session.close()
+        await async_session.remove()
 
 
 class Base(DeclarativeBase):
-    # Cấu hình để SQLAlchemy hiểu kiểu dữ liệu JSONB
-    type_annotation_map = {
-        dict[str, Any]: JSONB,
-        list[dict[str, Any]]: JSONB,
-    }
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),  # type: ignore
+        UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid7,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )

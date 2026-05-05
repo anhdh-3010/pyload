@@ -1,27 +1,27 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from fastapi import Header, Depends
+from fastapi import Depends, Header, status
 from jose import ExpiredSignatureError, JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import config
-from core.exceptions import CustomException
 from core.database.session import get_async_session
+from core.exceptions import CustomException
 
 
 class JWTDecodeError(CustomException):
-    code = 401
+    code = status.HTTP_401_UNAUTHORIZED
     message = "Invalid token"
 
 
 class JWTExpiredError(CustomException):
-    code = 401
+    code = status.HTTP_401_UNAUTHORIZED
     message = "Token expired"
 
 
 class UserNotFoundError(CustomException):
-    code = 401
+    code = status.HTTP_401_UNAUTHORIZED
     message = "User not found"
 
 
@@ -34,17 +34,12 @@ class JWTHandler:
     def encode(payload: dict, auth_method="password") -> str:
         expire = datetime.now(UTC) + timedelta(minutes=JWTHandler.expire_minutes)
         payload.update({"exp": expire, "auth_method": auth_method})
-        return jwt.encode(
-            payload, JWTHandler.secret_key, algorithm=JWTHandler.algorithm
-        )
+        return jwt.encode(payload, JWTHandler.secret_key, algorithm=JWTHandler.algorithm)
 
     @staticmethod
     def decode(token: str) -> dict:
-        a = 1
         try:
-            return jwt.decode(
-                token, JWTHandler.secret_key, algorithms=[JWTHandler.algorithm]
-            )
+            return jwt.decode(token, JWTHandler.secret_key, algorithms=[JWTHandler.algorithm])
         except ExpiredSignatureError as exception:
             raise JWTExpiredError() from exception
         except JWTError as exception:
@@ -93,8 +88,8 @@ class JWTHandler:
         user_repo = UserRepository(db_session)
         try:
             user = await user_repo.get_by_id(UUID(user_id))
-        except ValueError:
-            raise JWTDecodeError()
+        except ValueError as err:
+            raise JWTDecodeError() from err
 
         if not user:
             raise UserNotFoundError()

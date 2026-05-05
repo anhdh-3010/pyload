@@ -3,25 +3,26 @@ Core module exports - Import commonly used classes/functions here
 """
 
 # Security
-from core.security import JWTHandler, oauth
-
 # Config
 from core.config import config
 
 # Database
-from core.database.session import get_async_session, Base
-from core.database.transactional import Transactional
-
-# Repository
-from core.repository import BaseRepository
+from core.database.session import Base, get_async_session, get_unit_of_work
 
 # Exceptions
 from core.exceptions import (
-    CustomException,
     BadRequestException,
-    UnauthorizedException,
+    CustomException,
     NotFoundException,
+    UnauthorizedException,
 )
+
+# Repository
+from core.repository import BaseRepository
+from core.security import JWTHandler, oauth
+
+# Unit of Work
+from core.unit_of_work import UnitOfWork
 
 __all__ = [
     # Security
@@ -31,8 +32,10 @@ __all__ = [
     "config",
     # Database
     "get_async_session",
+    "get_unit_of_work",
     "Base",
-    "Transactional",
+    # Unit of Work
+    "UnitOfWork",
     # Repository
     "BaseRepository",
     # Exceptions

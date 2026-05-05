@@ -1,0 +1,63 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database.session import Base
+from core.repository.base import BaseRepository
+from core.unit_of_work.abs import AbstractUnitOfWork
+
+
+class UnitOfWork(AbstractUnitOfWork):
+    """
+    Concrete Unit of Work implementation.
+
+    Manages repositories, transactions, and provides access to the session.
+
+    Features:
+    - Repository caching (identity map)
+    - Transaction management (begin/commit/rollback)
+    - Async context manager support
+    - Automatic cleanup on context exit
+    """
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self._repositories: dict[str, BaseRepository] = {}
+
+    async def __aenter__(self):
+        """Begin transaction on context entry."""
+        await self.session.begin()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Handle transaction exit and cleanup."""
+        if exc_type is not None:
+            await self.rollback()
+        else:
+            await self.commit()
+
+    async def commit(self) -> None:
+        """Commit all changes to database."""
+        try:
+            await self.session.commit()
+        except Exception:
+            await self.rollback()
+            raise
+
+    async def rollback(self) -> None:
+        """Rollback all changes."""
+        await self.session.rollback()
+
+    def get_repository(self, model: type[Base]) -> BaseRepository:
+        """
+        Get or create repository for given model.
+        Caches repositories to ensure identity map consistency
+        and repository reuse within transaction scope.
+
+        :param model: SQLAlchemy model class
+        :return: BaseRepository instance for the model
+        """
+        model_name = model.__name__
+
+        if model_name not in self._repositories:
+            self._repositories[model_name] = BaseRepository(model, self.session)
+
+        return self._repositories[model_name]
