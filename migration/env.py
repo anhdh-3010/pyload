@@ -1,10 +1,12 @@
-from logging.config import fileConfig
 import asyncio
+from logging.config import fileConfig
 from urllib.parse import quote_plus
-from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlalchemy import Connection, pool
 
 from alembic import context
+from sqlalchemy import Connection, pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
+
+from core import Base
 from core import config as app_config
 
 # this is the Alembic Config object, which provides
@@ -12,9 +14,7 @@ from core import config as app_config
 config = context.config
 # URL-encode the password to handle special characters
 encoded_password = quote_plus(app_config.postgres_password)
-POSTGRES_URL: str = (
-    f"postgresql+asyncpg://{app_config.postgres_user}:{encoded_password}@{app_config.postgres_host}:{app_config.postgres_port}/{app_config.postgres_db}"
-)
+POSTGRES_URL: str = f"postgresql+asyncpg://{app_config.postgres_user}:{encoded_password}@{app_config.postgres_host}:{app_config.postgres_port}/{app_config.postgres_db}"
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

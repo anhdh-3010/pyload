@@ -8,12 +8,10 @@ from core.security.auth import (
     JWTHandler,
     UserNotFoundError,
 )
-from core.security.google_auth import oauth
 
 __all__ = [
     "JWTHandler",
     "JWTDecodeError",
     "JWTExpiredError",
     "UserNotFoundError",
-    "oauth",
 ]

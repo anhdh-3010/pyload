@@ -5,9 +5,10 @@ from fastapi import Depends, Header, status
 from jose import ExpiredSignatureError, JWTError, jwt
 
 from app.accounts.domain.models import Accounts
-from core import UnitOfWork, get_unit_of_work
 from core.config import config
+from core.database.session import get_unit_of_work
 from core.exceptions import CustomException
+from core.unit_of_work import UnitOfWork
 
 
 class JWTDecodeError(CustomException):

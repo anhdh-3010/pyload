@@ -7,7 +7,7 @@ Core module exports - Import commonly used classes/functions here
 from core.config import config
 
 # Database
-from core.database.session import Base, get_async_session, get_unit_of_work
+from core.database.session import Base, get_unit_of_work
 
 # Exceptions
 from core.exceptions import (
@@ -19,7 +19,7 @@ from core.exceptions import (
 
 # Repository
 from core.repository import BaseRepository
-from core.security import JWTHandler, oauth
+from core.security import JWTHandler
 
 # Unit of Work
 from core.unit_of_work import UnitOfWork
@@ -27,11 +27,9 @@ from core.unit_of_work import UnitOfWork
 __all__ = [
     # Security
     "JWTHandler",
-    "oauth",
     # Config
     "config",
     # Database
-    "get_async_session",
     "get_unit_of_work",
     "Base",
     # Unit of Work
