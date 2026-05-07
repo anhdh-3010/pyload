@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from app.accounts.domain.dependences import AccountServiceDep
-from app.accounts.domain.schemas import (
+from app.api.v1.accounts.domain.dependences import AccountServiceDep
+from app.api.v1.accounts.domain.schemas import (
     AccountResponse,
     LoginRequest,
     RegisterRequest,

@@ -1,4 +1,4 @@
-from app.accounts.domain.models import Accounts
+from app.api.v1.accounts.domain.models import Accounts
 from core.repository import BaseRepository
 
 

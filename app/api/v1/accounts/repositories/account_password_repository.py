@@ -1,4 +1,4 @@
-from app.accounts.domain.models import AccountPasswords
+from app.api.v1.accounts.domain.models import AccountPasswords
 from core.repository import BaseRepository
 
 

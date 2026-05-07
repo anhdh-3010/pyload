@@ -1,8 +1,8 @@
 from fastapi import status
 
-from app.accounts.domain.models import AccountPasswords, Accounts
-from app.accounts.domain.schemas import LoginRequest, RegisterRequest
-from app.accounts.repositories import AccountPasswordRepository, AccountRepository
+from app.api.v1.accounts.domain.models import AccountPasswords, Accounts
+from app.api.v1.accounts.domain.schemas import LoginRequest, RegisterRequest
+from app.api.v1.accounts.repositories import AccountPasswordRepository, AccountRepository
 from core import UnitOfWork
 from core.exceptions import CustomException
 from core.security.password import PasswordHandler

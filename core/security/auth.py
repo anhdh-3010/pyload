@@ -68,7 +68,7 @@ class JWTHandler:
         Get current authenticated user from JWT token.
         Returns User object from database.
         """
-        from app.accounts.repositories import AccountRepository
+        from app.api.v1.accounts.repositories import AccountRepository
 
         if not credentials or not credentials.credentials:
             raise JWTDecodeError()

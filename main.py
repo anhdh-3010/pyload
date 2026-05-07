@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.accounts.routers import private_router as private_accounts_router
-from app.accounts.routers import router as accounts_router
+from app.api.v1.accounts.routers import private_router as private_accounts_router
+from app.api.v1.accounts.routers import router as accounts_router
 from core import CustomException, config
 from core.middlewares import (
     ResponseLoggerMiddleware,
