@@ -10,7 +10,7 @@ from app.accounts.domain.schemas import (
 from core import JWTHandler
 
 router = APIRouter()
-private_router = APIRouter(dependencies=[Depends(JWTHandler.get_current_user)])
+private_router = APIRouter()
 
 
 @router.post("/register", response_model=Token, tags=["auth"])

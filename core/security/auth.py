@@ -1,10 +1,10 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from fastapi import Depends, Header, status
+from fastapi import Depends, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import ExpiredSignatureError, JWTError, jwt
 
-from app.accounts.domain.models import Accounts
 from core.config import config
 from core.database.session import get_unit_of_work
 from core.exceptions import CustomException
@@ -30,6 +30,7 @@ class JWTHandler:
     secret_key = config.jwt_secret_key
     algorithm = config.jwt_algorithm
     expire_minutes = config.jwt_access_token_expire_minutes
+    bearer_scheme = HTTPBearer()
 
     @staticmethod
     def encode(payload: dict, auth_method="password") -> str:
@@ -60,31 +61,27 @@ class JWTHandler:
 
     @staticmethod
     async def get_current_user(
-        authorization: str = Header(None, alias="Authorization"),
+        credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
         uow: UnitOfWork = Depends(dependency=get_unit_of_work),
     ):
         """
         Get current authenticated user from JWT token.
         Returns User object from database.
         """
-        if not authorization:
+        from app.accounts.repositories import AccountRepository
+
+        if not credentials or not credentials.credentials:
             raise JWTDecodeError()
 
-        # Extract token from "Bearer <token>" format
-        parts = authorization.split()
-        if len(parts) != 2 or parts[0].lower() != "bearer":
-            raise JWTDecodeError()
+        payload = JWTHandler.decode(credentials.credentials)
 
-        token = parts[1]
-        payload = JWTHandler.decode(token)
-
-        # Get user_id from payload
+        # Get account_name from payload
         user_id = payload.get("user_id")
         if not user_id:
             raise JWTDecodeError()
 
         # Fetch user from database
-        account_repo = uow.get_repository(Accounts)
+        account_repo = uow.get_repository(AccountRepository)
         try:
             user = await account_repo.get_by_id(UUID(user_id))
         except ValueError as err:

@@ -10,9 +10,13 @@ from core.repository.abs import AbsRepository
 
 
 class BaseRepository[ModelType: Base](AbsRepository):
-    def __init__(self, model: type[ModelType], db_session: AsyncSession) -> None:
+    model_class: type[ModelType]
+
+    def __init__(self, db_session: AsyncSession) -> None:
         self.session = db_session
-        self.model_class: type[ModelType] = model
+
+        if not hasattr(self, "model_class"):
+            raise ValueError("Repository must define model_class")
 
     async def create(self, entity: dict[str, Any]) -> ModelType:
         if entity is None:

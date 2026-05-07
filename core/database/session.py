@@ -1,7 +1,9 @@
 from contextvars import ContextVar, Token
 from datetime import datetime
+from typing import Annotated
 from urllib.parse import quote_plus
 
+from fastapi import Depends
 from sqlalchemy import DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import (
@@ -58,7 +60,23 @@ async_session: async_scoped_session[AsyncSession] = async_scoped_session(
 )
 
 
-async def get_unit_of_work():
+async def get_async_db_session():
+    """
+    Get the shared async database session for the current request scope.
+
+    This dependency is cached by FastAPI, so UoW and repositories can
+    depend on it and still receive the same AsyncSession instance.
+    """
+    session = async_session()
+    try:
+        yield session
+    finally:
+        await async_session.remove()
+
+
+async def get_unit_of_work(
+    session: Annotated[AsyncSession, Depends(get_async_db_session)],
+):
     """
     Get a Unit of Work instance for repository management.
 
@@ -76,11 +94,9 @@ async def get_unit_of_work():
     """
     from core.unit_of_work import UnitOfWork
 
-    session = async_session()
-    try:
-        yield UnitOfWork(session)
-    finally:
-        await async_session.remove()
+    uow = UnitOfWork(session)
+    async with uow:
+        yield uow
 
 
 class Base(DeclarativeBase):

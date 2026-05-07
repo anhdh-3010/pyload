@@ -2,6 +2,7 @@ from fastapi import status
 
 from app.accounts.domain.models import AccountPasswords, Accounts
 from app.accounts.domain.schemas import LoginRequest, RegisterRequest
+from app.accounts.repositories import AccountPasswordRepository, AccountRepository
 from core import UnitOfWork
 from core.exceptions import CustomException
 from core.security.password import PasswordHandler
@@ -23,8 +24,8 @@ class AccountService:
 
     async def register(self, request: RegisterRequest) -> Accounts:
         """Register a new account."""
-        account_repo = self.uow.get_repository(Accounts)
-        password_repo = self.uow.get_repository(AccountPasswords)
+        account_repo = self.uow.get_repository(AccountRepository)
+        password_repo = self.uow.get_repository(AccountPasswordRepository)
 
         # Check if account already exists
         existing_accounts = await account_repo.filter(
@@ -52,8 +53,8 @@ class AccountService:
 
     async def login(self, request: LoginRequest) -> Accounts:
         """Authenticate account and return account object if successful."""
-        account_repo = self.uow.get_repository(Accounts)
-        password_repo = self.uow.get_repository(AccountPasswords)
+        account_repo = self.uow.get_repository(AccountRepository)
+        password_repo = self.uow.get_repository(AccountPasswordRepository)
 
         # Find account by account_name
         accounts = await account_repo.filter(

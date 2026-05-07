@@ -29,6 +29,6 @@ class AbstractUnitOfWork(ABC):
         pass
 
     @abstractmethod
-    def get_repository(self, model):
+    def get_repository(self, repository_type):
         """Get repository for given model."""
         pass

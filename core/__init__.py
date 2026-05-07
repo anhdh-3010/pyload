@@ -7,7 +7,7 @@ Core module exports - Import commonly used classes/functions here
 from core.config import config
 
 # Database
-from core.database.session import Base, get_unit_of_work
+from core.database.session import Base, get_async_db_session, get_unit_of_work
 
 # Exceptions
 from core.exceptions import (
@@ -31,6 +31,7 @@ __all__ = [
     "config",
     # Database
     "get_unit_of_work",
+    "get_async_db_session",
     "Base",
     # Unit of Work
     "UnitOfWork",

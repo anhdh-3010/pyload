@@ -1,6 +1,7 @@
+from typing import cast
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database.session import Base
 from core.repository.base import BaseRepository
 from core.unit_of_work.abs import AbstractUnitOfWork
 
@@ -19,7 +20,7 @@ class UnitOfWork(AbstractUnitOfWork):
     """
 
     def __init__(self, session: AsyncSession):
-        self.session = session
+        self.session: AsyncSession = session
         self._repositories: dict[str, BaseRepository] = {}
 
     async def __aenter__(self):
@@ -46,18 +47,21 @@ class UnitOfWork(AbstractUnitOfWork):
         """Rollback all changes."""
         await self.session.rollback()
 
-    def get_repository(self, model: type[Base]) -> BaseRepository:
+    def get_repository[RepositoryType: BaseRepository](
+        self,
+        repository_type: type[RepositoryType],
+    ) -> RepositoryType:
         """
-        Get or create repository for given model.
+        Get or create repository for given class.
         Caches repositories to ensure identity map consistency
         and repository reuse within transaction scope.
 
-        :param model: SQLAlchemy model class
-        :return: BaseRepository instance for the model
+        :param repository_type: Repository class
+        :return: Repository instance for the class
         """
-        model_name = model.__name__
+        repository_name = repository_type.__name__
 
-        if model_name not in self._repositories:
-            self._repositories[model_name] = BaseRepository(model, self.session)
+        if repository_name not in self._repositories:
+            self._repositories[repository_name] = repository_type(self.session)
 
-        return self._repositories[model_name]
+        return cast(RepositoryType, self._repositories[repository_name])
