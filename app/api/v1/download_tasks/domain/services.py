@@ -1,0 +1,101 @@
+import uuid
+
+from fastapi import status
+
+from app.api.v1.download_tasks.domain.enums import DownloadStatus
+from app.api.v1.download_tasks.domain.models import DownloadTask
+from app.api.v1.download_tasks.domain.schemas import (
+    CreateDownloadTaskRequest,
+    UpdateDownloadTaskRequest,
+)
+from app.api.v1.download_tasks.repositories.download_task_repository import (
+    DownloadTaskRepository,
+)
+from core import NotFoundException, UnitOfWork
+from core.exceptions import CustomException
+
+
+class DownloadTaskAccessError(CustomException):
+    code = status.HTTP_404_NOT_FOUND
+    message = "Download task not found"
+
+
+class DownloadTaskService:
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
+    async def create_task(
+        self,
+        account_id: uuid.UUID,
+        request: CreateDownloadTaskRequest,
+    ) -> DownloadTask:
+        download_task_repo = self.uow.get_repository(DownloadTaskRepository)
+
+        task_data = {
+            "account_id": account_id,
+            "download_type": request.download_type,
+            "url": str(request.url),
+            "download_status": DownloadStatus.PENDING,
+            "task_metadata": request.metadata,
+        }
+        return await download_task_repo.create(task_data)
+
+    async def list_tasks(self, account_id: uuid.UUID) -> list[DownloadTask]:
+        download_task_repo = self.uow.get_repository(DownloadTaskRepository)
+        tasks = await download_task_repo.filter(
+            filter_conditions=[DownloadTask.account_id == account_id]
+        )
+        return list(tasks or [])
+
+    async def get_task(self, account_id: uuid.UUID, task_id: uuid.UUID) -> DownloadTask:
+        task = await self._get_owned_task(account_id, task_id)
+        return task
+
+    async def update_task(
+        self,
+        account_id: uuid.UUID,
+        task_id: uuid.UUID,
+        request: UpdateDownloadTaskRequest,
+    ) -> DownloadTask:
+        task = await self._get_owned_task(account_id, task_id)
+        download_task_repo = self.uow.get_repository(DownloadTaskRepository)
+
+        update_data: dict = {}
+        if request.download_type is not None:
+            update_data["download_type"] = request.download_type
+        if request.url is not None:
+            update_data["url"] = str(request.url)
+        if request.metadata is not None:
+            update_data["task_metadata"] = request.metadata
+
+        if not update_data:
+            return task
+
+        updated_task = await download_task_repo.update(task.id, update_data)
+        if updated_task is None:
+            raise NotFoundException("Download task not found")
+
+        return updated_task
+
+    async def delete_task(self, account_id: uuid.UUID, task_id: uuid.UUID) -> bool:
+        task = await self._get_owned_task(account_id, task_id)
+        download_task_repo = self.uow.get_repository(DownloadTaskRepository)
+        return await download_task_repo.delete(task.id)
+
+    async def _get_owned_task(
+        self,
+        account_id: uuid.UUID,
+        task_id: uuid.UUID,
+    ) -> DownloadTask:
+        download_task_repo = self.uow.get_repository(DownloadTaskRepository)
+        tasks = await download_task_repo.filter(
+            filter_conditions=[
+                DownloadTask.id == task_id,
+                DownloadTask.account_id == account_id,
+            ]
+        )
+
+        if not tasks:
+            raise DownloadTaskAccessError()
+
+        return tasks[0]

@@ -8,6 +8,9 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.v1.accounts.routers import private_router as private_accounts_router
 from app.api.v1.accounts.routers import router as accounts_router
+from app.api.v1.download_tasks.routers import (
+    private_router as private_download_tasks_router,
+)
 from core import CustomException, config
 from core.middlewares import (
     ResponseLoggerMiddleware,
@@ -27,6 +30,11 @@ def init_listeners(app_: FastAPI) -> None:
 def init_routers(app_: FastAPI) -> None:
     app_.include_router(accounts_router, prefix="/api/v1", tags=["auth"])
     app_.include_router(private_accounts_router, prefix="/api/v1", tags=["accounts"])
+    app_.include_router(
+        private_download_tasks_router,
+        prefix="/api/v1",
+        tags=["download_tasks"],
+    )
 
 
 def make_middleware() -> list[Middleware]:
