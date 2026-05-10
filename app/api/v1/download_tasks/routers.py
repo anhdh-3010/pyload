@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Response, status
 
-from app.api.v1.download_tasks.domain.dependences import DownloadTaskServiceDep
+from app.api.v1.download_tasks.domain.dependencies import DownloadTaskServiceDep
 from app.api.v1.download_tasks.domain.schemas import (
     CreateDownloadTaskRequest,
     DownloadTaskResponse,
