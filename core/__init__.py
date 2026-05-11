@@ -18,7 +18,7 @@ from core.exceptions import (
 )
 
 # Repository
-from core.repository import BaseRepository
+from core.repository.base import BaseRepository
 from core.security import JWTHandler
 
 # Unit of Work

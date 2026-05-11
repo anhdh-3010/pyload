@@ -1,4 +1,5 @@
-import uuid6
+import uuid
+
 from pydantic import BaseModel, Field, HttpUrl
 
 from app.api.v1.download_tasks.domain.enums import DownloadStatus, DownloadType
@@ -17,8 +18,8 @@ class UpdateDownloadTaskRequest(BaseModel):
 
 
 class DownloadTaskResponse(BaseModel):
-    id: uuid6.UUID
-    account_id: uuid6.UUID
+    id: uuid.UUID
+    account_id: uuid.UUID
     download_type: DownloadType
     url: str
     download_status: DownloadStatus
