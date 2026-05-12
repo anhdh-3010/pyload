@@ -7,7 +7,8 @@ class DownloadStatus(int, Enum):
     PROCESSING = 2
     SUCCESS = 3
     FAILED = 4
-    CANCELED = 5
+    PAUSED = 5
+    CANCELED = 6
 
 
 class DownloadType(int, Enum):

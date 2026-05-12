@@ -11,6 +11,7 @@ from app.api.v1.download_tasks.domain.schemas import (
 from app.api.v1.download_tasks.repositories.download_task_repository import (
     DownloadTaskRepository,
 )
+from app.api.v1.download_tasks.repositories.outbox_repository import OutboxEventRepository
 from core import NotFoundException, UnitOfWork
 from core.exceptions import CustomException
 
@@ -30,7 +31,7 @@ class DownloadTaskService:
         request: CreateDownloadTaskRequest,
     ) -> DownloadTask:
         download_task_repo = self.uow.get_repository(DownloadTaskRepository)
-
+        outbox_event_repo = self.uow.get_repository(OutboxEventRepository)
         task_data = {
             "account_id": account_id,
             "download_type": request.download_type,
@@ -38,7 +39,24 @@ class DownloadTaskService:
             "download_status": DownloadStatus.PENDING,
             "task_metadata": request.metadata,
         }
-        return await download_task_repo.create(task_data)
+
+        task = await download_task_repo.create(task_data)
+
+        outbox_event = {
+            "aggregate_type": "download_task",
+            "aggregate_id": task.id,
+            "event_type": "download_task.created",
+            "payload": {
+                "task_id": task.id,
+                "account_id": account_id,
+                "download_type": request.download_type,
+                "url": str(request.url),
+            },
+        }
+
+        await outbox_event_repo.create(outbox_event)
+
+        return task
 
     async def list_tasks(self, account_id: uuid.UUID) -> list[DownloadTask]:
         download_task_repo = self.uow.get_repository(DownloadTaskRepository)
