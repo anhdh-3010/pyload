@@ -1,5 +1,5 @@
-from app.api.v1.accounts.domain.models import AccountPasswords
 from core.repository.base import BaseRepository
+from modules.accounts.domain.models import AccountPasswords
 
 
 class AccountPasswordRepository(BaseRepository[AccountPasswords]):

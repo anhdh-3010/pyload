@@ -1,1 +1,1 @@
-from .datetime import utcnow
+from .datetime import utcnow as utcnow

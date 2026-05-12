@@ -1,6 +1,6 @@
 from collections.abc import Set
 
-from app.api.v1.download_tasks.domain.enums import DownloadStatus
+from modules.download_tasks.domain.enums import DownloadStatus
 
 ALLOWED_TRANSITIONS: dict[DownloadStatus, Set[DownloadStatus]] = {
     DownloadStatus.PENDING: {DownloadStatus.SCHEDULED, DownloadStatus.CANCELED},

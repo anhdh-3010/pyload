@@ -2,18 +2,16 @@ import uuid
 
 from fastapi import status
 
-from app.api.v1.download_tasks.domain.enums import DownloadStatus
-from app.api.v1.download_tasks.domain.models import DownloadTask
-from app.api.v1.download_tasks.domain.schemas import (
+from core import NotFoundException, UnitOfWork
+from core.exceptions import CustomException
+from modules.download_tasks.domain.enums import DownloadStatus
+from modules.download_tasks.domain.models import DownloadTask
+from modules.download_tasks.domain.schemas import (
     CreateDownloadTaskRequest,
     UpdateDownloadTaskRequest,
 )
-from app.api.v1.download_tasks.repositories.download_task_repository import (
-    DownloadTaskRepository,
-)
-from app.api.v1.download_tasks.repositories.outbox_repository import OutboxEventRepository
-from core import NotFoundException, UnitOfWork
-from core.exceptions import CustomException
+from modules.download_tasks.repositories.download_task_repository import DownloadTaskRepository
+from modules.outbox.repositories.outbox_repository import OutboxEventRepository
 
 
 class DownloadTaskAccessError(CustomException):
@@ -32,29 +30,29 @@ class DownloadTaskService:
     ) -> DownloadTask:
         download_task_repo = self.uow.get_repository(DownloadTaskRepository)
         outbox_event_repo = self.uow.get_repository(OutboxEventRepository)
-        task_data = {
-            "account_id": account_id,
-            "download_type": request.download_type,
-            "url": str(request.url),
-            "download_status": DownloadStatus.PENDING,
-            "task_metadata": request.metadata,
-        }
-
-        task = await download_task_repo.create(task_data)
-
-        outbox_event = {
-            "aggregate_type": "download_task",
-            "aggregate_id": task.id,
-            "event_type": "download_task.created",
-            "payload": {
-                "task_id": task.id,
+        task = await download_task_repo.create(
+            {
                 "account_id": account_id,
                 "download_type": request.download_type,
                 "url": str(request.url),
-            },
-        }
+                "download_status": DownloadStatus.PENDING,
+                "task_metadata": request.metadata,
+            }
+        )
 
-        await outbox_event_repo.create(outbox_event)
+        await outbox_event_repo.create(
+            {
+                "aggregate_type": "download_task",
+                "aggregate_id": task.id,
+                "event_type": "download_task.created",
+                "payload": {
+                    "task_id": task.id,
+                    "account_id": account_id,
+                    "download_type": request.download_type,
+                    "url": str(request.url),
+                },
+            }
+        )
 
         return task
 
@@ -66,8 +64,7 @@ class DownloadTaskService:
         return list(tasks or [])
 
     async def get_task(self, account_id: uuid.UUID, task_id: uuid.UUID) -> DownloadTask:
-        task = await self._get_owned_task(account_id, task_id)
-        return task
+        return await self._get_owned_task(account_id, task_id)
 
     async def update_task(
         self,

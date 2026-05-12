@@ -2,13 +2,13 @@ import uuid
 
 from fastapi import APIRouter, Depends, Response, status
 
-from app.api.v1.download_tasks.domain.dependencies import DownloadTaskServiceDep
-from app.api.v1.download_tasks.domain.schemas import (
+from core import JWTHandler
+from modules.download_tasks.domain.dependencies import DownloadTaskServiceDep
+from modules.download_tasks.domain.schemas import (
     CreateDownloadTaskRequest,
     DownloadTaskResponse,
     UpdateDownloadTaskRequest,
 )
-from core import JWTHandler
 
 router = APIRouter()
 private_router = APIRouter()
@@ -25,7 +25,6 @@ async def create_download_task(
     download_task_service: DownloadTaskServiceDep,
     current_user=Depends(JWTHandler.get_current_user),
 ) -> DownloadTaskResponse:
-    """Create a download task for the current user."""
     task = await download_task_service.create_task(current_user.id, request)
     return DownloadTaskResponse.model_validate(task)
 
@@ -39,7 +38,6 @@ async def list_download_tasks(
     download_task_service: DownloadTaskServiceDep,
     current_user=Depends(JWTHandler.get_current_user),
 ) -> list[DownloadTaskResponse]:
-    """List all download tasks for the current user."""
     tasks = await download_task_service.list_tasks(current_user.id)
     return [DownloadTaskResponse.model_validate(task) for task in tasks]
 
@@ -54,7 +52,6 @@ async def get_download_task(
     download_task_service: DownloadTaskServiceDep,
     current_user=Depends(JWTHandler.get_current_user),
 ) -> DownloadTaskResponse:
-    """Get a single download task for the current user."""
     task = await download_task_service.get_task(current_user.id, task_id)
     return DownloadTaskResponse.model_validate(task)
 
@@ -70,7 +67,6 @@ async def update_download_task(
     download_task_service: DownloadTaskServiceDep,
     current_user=Depends(JWTHandler.get_current_user),
 ) -> DownloadTaskResponse:
-    """Update a download task for the current user."""
     task = await download_task_service.update_task(current_user.id, task_id, request)
     return DownloadTaskResponse.model_validate(task)
 
@@ -85,6 +81,5 @@ async def delete_download_task(
     download_task_service: DownloadTaskServiceDep,
     current_user=Depends(JWTHandler.get_current_user),
 ) -> Response:
-    """Delete a download task for the current user."""
     await download_task_service.delete_task(current_user.id, task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

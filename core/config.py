@@ -14,10 +14,14 @@ class Config(BaseConfig):
     postgres_db: str
     postgres_port: int
     postgres_host: str
+    kafka_bootstrap_servers: str = "localhost:9092"
+    kafka_download_tasks_topic: str = "download_tasks"
     environment: str = "development"
     app_host: str = "localhost"
     app_port: int = 8000
     base_url: str = "http://localhost:8000"
+    outbox_poll_interval_seconds: float = 2.0
+    outbox_batch_size: int = 100
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60

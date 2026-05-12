@@ -1,5 +1,5 @@
-from app.api.v1.download_tasks.domain.models import DownloadTask
 from core.repository.base import BaseRepository
+from modules.download_tasks.domain.models import DownloadTask
 
 
 class DownloadTaskRepository(BaseRepository[DownloadTask]):

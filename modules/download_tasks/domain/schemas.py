@@ -2,7 +2,7 @@ import uuid
 
 from pydantic import BaseModel, Field, HttpUrl
 
-from app.api.v1.download_tasks.domain.enums import DownloadStatus, DownloadType
+from modules.download_tasks.domain.enums import DownloadStatus, DownloadType
 
 
 class CreateDownloadTaskRequest(BaseModel):
