@@ -4,6 +4,7 @@ from fastapi import status
 
 from core import NotFoundException, UnitOfWork
 from core.exceptions import CustomException
+from core.utils import to_jsonable
 from modules.download_tasks.domain.enums import DownloadStatus
 from modules.download_tasks.domain.models import DownloadTask
 from modules.download_tasks.domain.schemas import (
@@ -45,12 +46,14 @@ class DownloadTaskService:
                 "aggregate_type": "download_task",
                 "aggregate_id": task.id,
                 "event_type": "download_task.created",
-                "payload": {
-                    "task_id": task.id,
-                    "account_id": account_id,
-                    "download_type": request.download_type,
-                    "url": str(request.url),
-                },
+                "payload": to_jsonable(
+                    {
+                        "task_id": task.id,
+                        "account_id": account_id,
+                        "download_type": request.download_type,
+                        "url": str(request.url),
+                    }
+                ),
             }
         )
 

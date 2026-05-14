@@ -3,7 +3,7 @@ import logging
 
 from core import config
 from core.kafka.producer import KafkaProducer
-from modules.outbox.services.publisher import OutboxPublisherService
+from services.outbox_publisher.publisher import OutboxPublisherService
 
 logging.basicConfig(level=logging.INFO)
 

@@ -1,6 +1,5 @@
 from contextvars import ContextVar, Token
 from datetime import datetime
-from types import TracebackType
 from typing import Annotated
 from urllib.parse import quote_plus
 
@@ -73,31 +72,6 @@ async def get_async_db_session():
         yield session
     finally:
         await async_session.remove()
-
-
-class SessionManager:
-    """Async context manager for non-HTTP processes."""
-
-    def __init__(self):
-        self.session: AsyncSession | None = None
-
-    async def __aenter__(self) -> AsyncSession:
-        self.session = async_session_factory()
-        return self.session
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        if self.session is not None:
-            await self.session.close()
-
-
-def create_session_manager() -> SessionManager:
-    """Create a raw async session manager for background processes."""
-    return SessionManager()
 
 
 async def get_unit_of_work(

@@ -1,6 +1,6 @@
-import json
-
 from aiokafka import AIOKafkaProducer
+
+from core.utils import dumps_json
 
 
 class KafkaProducer:
@@ -11,7 +11,7 @@ class KafkaProducer:
     async def start(self) -> None:
         self._producer = AIOKafkaProducer(
             bootstrap_servers=self._bootstrap_servers,
-            value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+            value_serializer=lambda value: dumps_json(value).encode("utf-8"),
             key_serializer=lambda value: str(value).encode("utf-8"),
         )
         await self._producer.start()
