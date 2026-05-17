@@ -16,7 +16,10 @@ class Config(BaseConfig):
     postgres_port: int
     postgres_host: str
     kafka_bootstrap_servers: str = "localhost:9092"
-    kafka_download_tasks_topic: str = "download_tasks"
+    kafka_download_tasks_topic: str = "download_task.created"
+    kafka_worker_group_id: str = "worker-service"
+    worker_download_dir: str = "./downloads"
+    worker_http_timeout_seconds: float = 300.0
     environment: str = "development"
     app_host: str = "localhost"
     app_port: int = 8000

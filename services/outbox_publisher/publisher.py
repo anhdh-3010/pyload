@@ -40,7 +40,7 @@ class OutboxPublisherService:
             return len(events)
 
     def _resolve_topic(self, event: OutboxEvent) -> str:
-        if event.aggregate_type == "download_task":
+        if event.event_type == "download_task.created":
             return config.kafka_download_tasks_topic
 
-        return event.aggregate_type
+        return event.event_type

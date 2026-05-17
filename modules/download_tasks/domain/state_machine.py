@@ -3,7 +3,11 @@ from collections.abc import Set
 from modules.download_tasks.domain.enums import DownloadStatus
 
 ALLOWED_TRANSITIONS: dict[DownloadStatus, Set[DownloadStatus]] = {
-    DownloadStatus.PENDING: {DownloadStatus.SCHEDULED, DownloadStatus.CANCELED},
+    DownloadStatus.PENDING: {
+        DownloadStatus.SCHEDULED,
+        DownloadStatus.PROCESSING,
+        DownloadStatus.CANCELED,
+    },
     DownloadStatus.SCHEDULED: {
         DownloadStatus.PROCESSING,
         DownloadStatus.PAUSED,

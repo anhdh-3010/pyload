@@ -1,9 +1,12 @@
+import logging
 from typing import cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.repository.base import BaseRepository
 from core.unit_of_work.abs import AbstractUnitOfWork
+
+logger = logging.getLogger(__name__)
 
 
 class UnitOfWork(AbstractUnitOfWork):
@@ -39,7 +42,8 @@ class UnitOfWork(AbstractUnitOfWork):
         """Commit all changes to database."""
         try:
             await self.session.commit()
-        except Exception:
+        except Exception as e:
+            logger.exception(f"Failed to commit unit of work; rolling back transaction: {e}")
             await self.rollback()
             raise
 

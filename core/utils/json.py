@@ -29,3 +29,9 @@ def to_jsonable(value):
 
 def dumps_json(value) -> str:
     return json.dumps(to_jsonable(value))
+
+
+def loads_json(value: str | bytes | bytearray):
+    if isinstance(value, bytes | bytearray):
+        value = value.decode("utf-8")
+    return json.loads(value)
