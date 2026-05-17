@@ -5,15 +5,17 @@ from modules.download_tasks.domain.enums import DownloadStatus
 ALLOWED_TRANSITIONS: dict[DownloadStatus, Set[DownloadStatus]] = {
     DownloadStatus.PENDING: {
         DownloadStatus.SCHEDULED,
-        DownloadStatus.PROCESSING,
         DownloadStatus.CANCELED,
     },
     DownloadStatus.SCHEDULED: {
         DownloadStatus.PROCESSING,
+        DownloadStatus.PENDING,
         DownloadStatus.PAUSED,
         DownloadStatus.CANCELED,
     },
     DownloadStatus.PROCESSING: {
+        DownloadStatus.PENDING,
+        DownloadStatus.SCHEDULED,
         DownloadStatus.SUCCESS,
         DownloadStatus.FAILED,
         DownloadStatus.PAUSED,

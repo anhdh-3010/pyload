@@ -1,6 +1,8 @@
 import logging
+from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from core import UnitOfWork, config
 from core.database.session import async_session_factory
@@ -21,8 +23,9 @@ class WorkerService:
         self._downloaders: dict[DownloadType, BaseDownloader] = {
             DownloadType.DIRECT_HTTP: DirectHttpDownloader(self._download_dir),
         }
+        self._worker_id = f"worker-{uuid4()}"
 
-    async def process_download_task_created(self, payload: dict) -> None:
+    async def process_download_task_ready(self, payload: dict) -> None:
         task_id = UUID(str(payload["task_id"]))
 
         claimed_task = await self._claim_task(task_id)
@@ -38,8 +41,8 @@ class WorkerService:
             )
             return
 
+        task = claimed_task.task
         try:
-            task = claimed_task.task
             downloader = self._get_downloader(task)
             result = await downloader.download(task)
             await self._mark_task_success(task.id, result.file_path, result.file_size)
@@ -54,7 +57,7 @@ class WorkerService:
             if task is None:
                 return None
 
-            if DownloadStatus(task.download_status) is not DownloadStatus.PENDING:
+            if DownloadStatus(task.download_status) is not DownloadStatus.SCHEDULED:
                 return ClaimedTask(task=task, claimed=False)
 
             ensure_can_transition(
@@ -62,6 +65,9 @@ class WorkerService:
                 DownloadStatus.PROCESSING,
             )
             task.download_status = DownloadStatus.PROCESSING
+            task.locked_by = self._worker_id
+            task.locked_until = utcnow() + timedelta(seconds=config.worker_lock_ttl_seconds)
+            task.attempts += 1
             task.task_metadata = self._merge_metadata(
                 task.task_metadata,
                 {
@@ -90,6 +96,8 @@ class WorkerService:
                 DownloadStatus.SUCCESS,
             )
             task.download_status = DownloadStatus.SUCCESS
+            task.locked_by = None
+            task.locked_until = None
             task.task_metadata = self._merge_metadata(
                 task.task_metadata,
                 {
@@ -113,8 +121,16 @@ class WorkerService:
             if current_status is DownloadStatus.FAILED:
                 return
 
-            ensure_can_transition(current_status, DownloadStatus.FAILED)
-            task.download_status = DownloadStatus.FAILED
+            should_retry = task.attempts < task.max_attempts
+            next_status = DownloadStatus.PENDING if should_retry else DownloadStatus.FAILED
+
+            ensure_can_transition(current_status, next_status)
+            task.download_status = next_status
+            task.locked_by = None
+            task.locked_until = None
+            if should_retry:
+                task.run_at = utcnow() + timedelta(seconds=config.worker_retry_delay_seconds)
+
             task.task_metadata = self._merge_metadata(
                 task.task_metadata,
                 {
@@ -137,7 +153,7 @@ class WorkerService:
         return downloader
 
 
+@dataclass
 class ClaimedTask:
-    def __init__(self, task: DownloadTask, claimed: bool):
-        self.task = task
-        self.claimed = claimed
+    task: DownloadTask
+    claimed: bool

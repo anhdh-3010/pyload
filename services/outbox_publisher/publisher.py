@@ -41,6 +41,8 @@ class OutboxPublisherService:
 
     def _resolve_topic(self, event: OutboxEvent) -> str:
         if event.event_type == "download_task.created":
-            return config.kafka_download_tasks_topic
+            return config.kafka_download_task_created_topic
+        if event.event_type == "download_task.ready":
+            return config.kafka_download_task_ready_topic
 
         return event.event_type

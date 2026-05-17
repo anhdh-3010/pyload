@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
     consumer = KafkaConsumer(
         bootstrap_servers=config.kafka_bootstrap_servers,
-        topic=config.kafka_download_tasks_topic,
+        topic=config.kafka_download_task_ready_topic,
         group_id=config.kafka_worker_group_id,
     )
     service = WorkerService()
@@ -21,14 +21,14 @@ async def main() -> None:
     await consumer.start()
     logger.info(
         "Worker service started. topic=%s group_id=%s",
-        config.kafka_download_tasks_topic,
+        config.kafka_download_task_ready_topic,
         config.kafka_worker_group_id,
     )
 
     try:
         async for message in consumer.raw():
             try:
-                await service.process_download_task_created(message.value)
+                await service.process_download_task_ready(message.value)
                 await consumer.raw().commit()
             except KeyError:
                 logger.exception("Invalid Kafka payload: %s", message.value)

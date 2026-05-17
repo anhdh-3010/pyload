@@ -4,7 +4,7 @@ from fastapi import status
 
 from core import NotFoundException, UnitOfWork
 from core.exceptions import CustomException
-from core.utils import to_jsonable
+from core.utils import to_jsonable, utcnow
 from modules.download_tasks.domain.enums import DownloadStatus
 from modules.download_tasks.domain.models import DownloadTask
 from modules.download_tasks.domain.schemas import (
@@ -37,6 +37,9 @@ class DownloadTaskService:
                 "download_type": request.download_type,
                 "url": str(request.url),
                 "download_status": DownloadStatus.PENDING,
+                "attempts": 0,
+                "max_attempts": 3,
+                "run_at": utcnow(),
                 "task_metadata": request.metadata,
             }
         )
